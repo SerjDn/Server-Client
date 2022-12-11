@@ -25,7 +25,7 @@ public class ServerService {
         }
     }
 
-    private void serializeList(Client client) {
+    public void serializeList(Client client) {
         try {
             JsonMapper mapper = new JsonMapper();
             clients.add(client);
