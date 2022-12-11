@@ -1,6 +1,7 @@
 package org.example.service;
 
 import com.fasterxml.jackson.databind.json.JsonMapper;
+import org.example.enums.Status;
 import org.example.model.Client;
 
 import java.io.*;
@@ -11,32 +12,39 @@ import java.util.*;
 
 public class ServerService {
 
-    public static void serializeList(Client client) {
-//        File file = new File("src/main/resources/client.json");
+    private ServerSocket serverSocket;
+    private final List<Client> clients = new ArrayList<>();
+    File file = new File("src/main/resources/client.json");
+    private int userCounter = 1;
+
+    public ServerService(int port) {
         try {
-            JsonMapper mapper = new JsonMapper();
-            List<Client> clients = new ArrayList<>();
-            clients.add(client);
-            mapper.writeValue(new File("src/main/resources/client.json"), clients);
+            this.serverSocket = new ServerSocket(port);
         } catch (IOException e) {
-            System.out.println("Can not create file: " + ".................");
+            System.out.println("Can not create new server...");
         }
     }
 
-    public static void main(String[] args) throws IOException {
+    private void serializeList(Client client) {
+        try {
+            JsonMapper mapper = new JsonMapper();
+            clients.add(client);
+            mapper.writeValue(file, clients);
+        } catch (IOException e) {
+            System.out.println("Can not create/read file: " + file);
+        }
+    }
 
-        ServerSocket serverSocket = new ServerSocket(8085);
+    public void clientProcessor() throws IOException {
 
         while (true) {
 
             Socket socket = serverSocket.accept();
 
-            Client client = new Client("user", new SimpleDateFormat("yyyyMMdd_HHmmss").format(Calendar.getInstance().getTime()), socket.toString());
-            System.out.println(client);
-            System.out.println("user has been connected!");
-
-            System.out.println(client.getSocket());
+            Client client = new Client("user" + userCounter, new SimpleDateFormat("yyyyMMdd_HHmmss").format(Calendar.getInstance().getTime()), socket.toString(), Status.CONNECT);
             serializeList(client);
+            System.out.println(client.getName() + " has been connected!");
+            userCounter += 1;
 
             new Thread(() -> {
                 try {
@@ -44,7 +52,13 @@ public class ServerService {
                     String word;
 
                     while ( (word = bufferedReader.readLine()) != null) {
-                        System.out.println(word);
+                        System.out.println(client.getName() + ": " + word);
+                        if (word.equals("exit")) {
+                            Client clientLeft = new Client(client.getName(), new SimpleDateFormat("yyyyMMdd_HHmmss").format(Calendar.getInstance().getTime()), client.getSocketInfo(), Status.DISCONNECT);
+                            serializeList(clientLeft);
+                            System.out.println(client.getName() + " left from server!");
+                            break;
+                        }
                     }
                 } catch (IOException e) {
                     throw new RuntimeException(e);
