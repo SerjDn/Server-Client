@@ -41,7 +41,7 @@ public class ServerService {
 
             Socket socket = serverSocket.accept();
 
-            Client client = new Client("user" + userCounter, new SimpleDateFormat("yyyyMMdd_HHmmss").format(Calendar.getInstance().getTime()), socket.toString(), Status.CONNECT);
+            Client client = new Client("user" + userCounter, new SimpleDateFormat("yyyyMMdd_HHmmss").format(Calendar.getInstance().getTime()), socket.toString(), Status.CONNECT.getState());
             serializeList(client);
             System.out.println(client.getName() + " has been connected!");
             userCounter += 1;
@@ -54,7 +54,7 @@ public class ServerService {
                     while ( (word = bufferedReader.readLine()) != null) {
                         System.out.println(client.getName() + ": " + word);
                         if (word.equals("exit")) {
-                            Client clientLeft = new Client(client.getName(), new SimpleDateFormat("yyyyMMdd_HHmmss").format(Calendar.getInstance().getTime()), client.getSocketInfo(), Status.DISCONNECT);
+                            Client clientLeft = new Client(client.getName(), new SimpleDateFormat("yyyyMMdd_HHmmss").format(Calendar.getInstance().getTime()), client.getSocketInfo(), Status.DISCONNECT.getState());
                             serializeList(clientLeft);
                             System.out.println(client.getName() + " left from server!");
                             break;
